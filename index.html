@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matteo Coffee - Restaurant Chatbot</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2420 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-widget {
+            width: 100%;
+            max-width: 420px;
+            height: 600px;
+            background: #faf8f5;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #3d2914 0%, #5c3d2e 100%);
+            padding: 24px;
+            color: #f5f0e8;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .restaurant-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .header-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            font-size: 0.75rem;
+            background: rgba(76, 175, 80, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: #f5f0e8;
+        }
+
+        .message {
+            max-width: 85%;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-bot {
+            align-self: flex-start;
+        }
+
+        .message-user {
+            align-self: flex-end;
+        }
+
+        .message-content {
+            padding: 14px 18px;
+            border-radius: 18px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .message-bot .message-content {
+            background: #ffffff;
+            color: #2d2420;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .message-user .message-content {
+            background: #3d2914;
+            color: #f5f0e8;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: #8b7355;
+            margin-top: 6px;
+            margin-left: 4px;
+        }
+
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+            padding-left: 4px;
+        }
+
+        .quick-reply {
+            background: transparent;
+            border: 1.5px solid #3d2914;
+            color: #3d2914;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .quick-reply:hover {
+            background: #3d2914;
+            color: #f5f0e8;
+        }
+
+        .whatsapp-btn {
+            display: inline-block;
+            background: #25D366;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 28px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 12px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .whatsapp-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.4);
+        }
+
+        .menu-category {
+            background: #faf8f5;
+            border: 1px solid #e0d5c7;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+
+        .menu-category-title {
+            font-family: 'Playfair Display', serif;
+            color: #3d2914;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #d4c4b0;
+            padding-bottom: 4px;
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dotted #d4c4b0;
+            font-size: 0.9rem;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item-name {
+            color: #2d2420;
+            flex: 1;
+        }
+
+        .menu-item-price {
+            color: #5c3d2e;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            background: #faf8f5;
+            border-top: 1px solid #e0d5c7;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 1.5px solid #d4c4b0;
+            border-radius: 24px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #ffffff;
+        }
+
+        .chat-input:focus {
+            border-color: #3d2914;
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #3d2914;
+            color: #f5f0e8;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            background: #5c3d2e;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 18px;
+            background: #ffffff;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #8b7355;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #d4c4b0;
+            border-radius: 3px;
+        }
+
+        /* Booking Form Styles */
+        .booking-form {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            color: #5c3d2e;
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .form-select, .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #d4c4b0;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            background: #faf8f5;
+            color: #2d2420;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .form-select:focus, .form-input:focus {
+            outline: none;
+            border-color: #3d2914;
+            background: #ffffff;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .submit-booking-btn {
+            width: 100%;
+            padding: 14px;
+            background: #3d2914;
+            color: #f5f0e8;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .submit-booking-btn:hover {
+            background: #5c3d2e;
+            transform: translateY(-1px);
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border-left: 4px solid #c62828;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-widget">
+    <div class="chat-header">
+        <div class="header-content">
+            <div class="restaurant-name">Matteo Coffee</div>
+            <div class="header-subtitle">Your friendly neighborhood café</div>
+            <div class="status-badge">
+                <span class="status-dot"></span>
+                <span>Online - Usually replies instantly</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <!-- Messages will appear here -->
+    </div>
+
+    <div class="chat-input-area">
+        <div class="input-wrapper">
+            <input type="text" class="chat-input" id="userInput" placeholder="Type your message..." autocomplete="off">
+            <button class="send-btn" onclick="sendMessage()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Store the current WhatsApp URL globally so the button can use it
+let currentWhatsAppUrl = '';
+
+// ==========================================
+// DATE AND TIME GENERATION
+// ==========================================
+
+function getNext7Days() {
+    const days = [];
+    const today = new Date();
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        
+        const dayName = i === 0 ? 'Today' : (i === 1 ? 'Tomorrow' : dayNames[date.getDay()]);
+        const dateStr = `${date.getDate()} ${monthNames[date.getMonth()]}`;
+        const fullDate = `${date.getDate()} ${getMonthName(date.getMonth())} ${date.getFullYear()}`;
+        
+        days.push({
+            value: fullDate,
+            label: `${dayName}, ${dateStr}`
+        });
+    }
+    
+    return days;
+}
+
+function getMonthName(monthIndex) {
+    const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return months[monthIndex];
+}
+
+function getTimeSlots() {
+    const slots = [];
+    const startHour = 8; // 8 AM
+    const endHour = 22; // 10 PM
+    
+    for (let hour = startHour; hour <= endHour; hour++) {
+        for (let min of [0, 30]) {
+            const period = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+            const displayMin = min === 0 ? '00' : '30';
+            const timeStr = `${displayHour}:${displayMin} ${period}`;
+            const valueStr = `${hour.toString().padStart(2, '0')}:${displayMin}`;
+            
+            slots.push({
+                value: timeStr,
+                label: timeStr
+            });
+        }
+    }
+    
+    return slots;
+}
+
+function getGuestOptions() {
+    const options = [];
+    for (let i = 1; i <= 10; i++) {
+        options.push({
+            value: i.toString(),
+            label: i === 1 ? '1 Guest' : `${i} Guests`
+        });
+    }
+    options.push({
+        value: '10+',
+        label: '10+ Guests'
+    });
+    return options;
+}
+
+// ==========================================
+// COMPLETE MENU DATA
+// ==========================================
+
+const menuData = {
+    coffee: {
+        title: "From The Barista",
+        items: [
+            { name: "Espresso", price: "₹125/210" },
+            { name: "Ristretto", price: "₹125" },
+            { name: "Chocolate Espresso", price: "₹135/230" },
+            { name: "Macchiato", price: "₹135" },
+            { name: "Caffè Latte", price: "₹180/190" },
+            { name: "Caramel Latte", price: "₹190/220" },
+            { name: "Flavored Lattes (Vanilla/Hazelnut/Coconut)", price: "₹190/220" },
+            { name: "Cappuccino", price: "₹150/190" },
+            { name: "Caffè Mocha", price: "₹190/220" },
+            { name: "White Chocolate Mocha", price: "₹190/220" },
+            { name: "Caffè Americano", price: "₹130/150" },
+            { name: "Steamer", price: "₹130/150" },
+            { name: "Iced Espresso Latte / Iced Cappuccino", price: "₹170/200" },
+            { name: "Iced Americano", price: "₹130/150" },
+            { name: "Specialty Tea", price: "₹120" },
+            { name: "Hot Cocoa", price: "₹170/200" }
+        ]
+    },
+    shekerato: {
+        title: "Shekerato (Signature Shakes)",
+        items: [
+            { name: "Espresso Shekerato", price: "₹180/210" },
+            { name: "White Mocha Shekerato", price: "₹200/250" },
+            { name: "Date Shekerato", price: "₹210/240" },
+            { name: "Black & White Shekerato", price: "₹210/240" },
+            { name: "Mocha Shekerato", price: "₹200/250" },
+            { name: "Caramel Shekerato", price: "₹200/250" },
+            { name: "Hawaiian Coconut Shekerato", price: "₹200/250" },
+            { name: "Butter Scotch N Honey Delight Shekerato", price: "₹200/250" },
+            { name: "Vanilla Shekerato / Hazelnut Shekerato", price: "₹200/230" }
+        ]
+    },
+    beverages: {
+        title: "Other Beverages",
+        items: [
+            { name: "Lemon Iced Tea", price: "₹140/160" },
+            { name: "Peach Iced Tea", price: "₹150/170" },
+            { name: "Raspberry Iced Tea", price: "₹150/170" },
+            { name: "Milk Shakes (Vanilla/Chocolate/Strawberry)", price: "₹180/210" },
+            { name: "Mango", price: "₹210/240" },
+            { name: "Choco Brownie Shake", price: "₹270" },
+            { name: "Blueberry Cheesecake Shake", price: "₹270" },
+            { name: "Seasonal Fresh Fruit Salad", price: "₹200" },
+            { name: "Seasonal Fresh Juices", price: "₹150" },
+            { name: "Small Mineral Water", price: "₹15" }
+        ]
+    },
+    sandwiches: {
+        title: "Sandwiches",
+        items: [
+            { name: "Cheese & Tomato Sandwich", price: "₹180" },
+            { name: "Omelet Sandwich", price: "₹200" },
+            { name: "Tuna Fish Sandwich", price: "₹230" },
+            { name: "Cold Chicken Sandwich", price: "₹250" }
+        ]
+    },
+    hotSandwiches: {
+        title: "Hot Sandwiches",
+        items: [
+            { name: "Veg with hot peppers & Slice Cheese Sandwich", price: "₹200" },
+            { name: "Paneer Tikka with Vegetables & Hot Peppers", price: "₹200" },
+            { name: "Chicken Tikka with Vegetables & Hot Peppers", price: "₹220" },
+            { name: "Chicken Sausage with Veg & Hot Peppers", price: "₹230" },
+            { name: "Veg Club Sandwich", price: "₹280" },
+            { name: "Veg Club Sandwich with Fries", price: "₹310" },
+            { name: "Non-Veg Club Sandwich", price: "₹350" },
+            { name: "Non-Veg Club Sandwich with Fries", price: "₹340" }
+        ]
+    },
+    burgers: {
+        title: "Burgers",
+        items: [
+            { name: "Vegetable Burger", price: "₹220" },
+            { name: "Vegetable Burger served along with French Fries", price: "₹260" },
+            { name: "Chicken Burger", price: "₹240" },
+            { name: "Chicken Burger served along with French Fries", price: "₹310" },
+            { name: "Spicy Lamb Burger", price: "₹310" },
+            { name: "Spicy Lamb Burger served along with French Fries", price: "₹390" }
+        ]
+    },
+    wraps: {
+        title: "Wraps",
+        items: [
+            { name: "Chicken Tikka Wrap", price: "₹250" },
+            { name: "Paneer Tikka Wrap", price: "₹210" }
+        ]
+    },
+    eggs: {
+        title: "Selection of Eggs",
+        items: [
+            { name: "Fried Eggs", price: "₹160" },
+            { name: "Scrambled Eggs", price: "₹160" },
+            { name: "Plain Omelet", price: "₹160" },
+            { name: "Masala Omelet", price: "₹180" },
+            { name: "Mushroom Omelet", price: "₹180" },
+            { name: "Cheese Omelet", price: "₹180" },
+            { name: "Spanish Omelet (Contains Chicken)", price: "₹240" },
+            { name: "Chicken Sausage", price: "₹120" }
+        ]
+    },
+    pasta: {
+        title: "Pasta",
+        items: [
+            { name: "Shrimp Penne N Cream Sauce", price: "₹390" },
+            { name: "Chicken Penne N Cream Sauce", price: "₹390" },
+            { name: "Chicken Spaghetti N Cream Sauce", price: "₹390" },
+            { name: "Shrimp Penne Napolitana", price: "₹390" },
+            { name: "Penne Pasta Bolognese (Lamb Meat)", price: "₹390" },
+            { name: "Spaghetti Bolognese (Lamb Meat)", price: "₹390" },
+            { name: "Penne Pasta N Cream Sauce", price: "₹390" },
+            { name: "Chicken Penne Napolitana", price: "₹370" },
+            { name: "Chicken Spaghetti Napolitana", price: "₹370" },
+            { name: "Chicken Penne Napolitana Mix Sauce", price: "₹390" },
+            { name: "Spaghetti Napolitana", price: "₹320" },
+            { name: "Spaghetti Napolitana Mix Sauce", price: "₹370" },
+            { name: "Penne Pasta Napolitana", price: "₹320" },
+            { name: "Penne Pasta Napolitana Mix Sauce", price: "₹370" }
+        ]
+    },
+    pastries: {
+        title: "Pastries",
+        items: [
+            { name: "Tiramisu (No alcohol content)", price: "₹170" },
+            { name: "Black Forest Cake", price: "₹140" },
+            { name: "Chocolate Pie (Eggless)", price: "₹150" },
+            { name: "Pineapple Cake (Eggless)", price: "₹140" },
+            { name: "Mango Cake (Eggless)", price: "₹150" },
+            { name: "Pineapple Cake", price: "₹140" },
+            { name: "Brownie (Small)", price: "₹100" },
+            { name: "Brownie (Regular)", price: "₹200" },
+            { name: "Brownie with Ice Cream (Small)", price: "₹170" },
+            { name: "Brownie with Ice Cream (Regular)", price: "₹270" },
+            { name: "Apple Pie", price: "₹150" },
+            { name: "Apple Pie with Ice Cream", price: "₹220" },
+            { name: "Fruit Tart (Seasonal)", price: "₹150" },
+            { name: "Blueberry Mousse Cheese Cake", price: "₹180" },
+            { name: "Chocolate Cake", price: "₹140" }
+        ]
+    },
+    bakery: {
+        title: "Bakery Specialties",
+        items: [
+            { name: "Croissants", price: "₹100" },
+            { name: "Plain Croissant", price: "₹110" },
+            { name: "Chocolate Croissant", price: "₹110" },
+            { name: "Cheese Croissant", price: "₹110" },
+            { name: "Cinnamon Roll", price: "₹110" },
+            { name: "Assorted Danish (Blueberry/Cheese)", price: "₹110" },
+            { name: "Bread Butter Jam", price: "₹110" }
+        ]
+    },
+    salad: {
+        title: "Salad",
+        items: [
+            { name: "Grilled Chicken Caesar Salad", price: "₹320" },
+            { name: "Veg Delight Salad", price: "₹250" },
+            { name: "Veg Caesar Salad", price: "₹280" }
+        ]
+    },
+    addOns: {
+        title: "Extra Add Ons",
+        items: [
+            { name: "Extra Egg (Fried Egg one number)", price: "₹60" },
+            { name: "Extra Grilled Chicken (For salad topping)", price: "₹170" },
+            { name: "Extra Chicken Patty", price: "₹100" },
+            { name: "Extra Cream Sauce (For pasta)", price: "₹80" },
+            { name: "Extra Cheese Slice", price: "₹40" },
+            { name: "Extra Mayonnaise", price: "₹30" },
+            { name: "Extra Honey", price: "₹30" },
+            { name: "French Fries (Small)", price: "₹180" },
+            { name: "French Fries (Regular)", price: "₹200" },
+            { name: "Peri Peri Fries (Small)", price: "₹200" },
+            { name: "Peri Peri Fries (Regular)", price: "₹250" }
+        ]
+    }
+};
+
+// Chatbot Personality - Casual Gentleman
+const botPersonality = {
+    greetings: [
+        "Good day! Welcome to Matteo Coffee. I'm Alfred, your virtual host. How may I assist you today?",
+        "Hello there! Lovely to see you. I'm here to help with reservations or menu recommendations. What brings you in?",
+        "Welcome! Do come in. Would you like to book a table or shall I tell you about our specialties?"
+    ],
+    
+    menuResponses: {
+        general: "Ah, excellent choice! We take immense pride in our offerings. Here's what we have:",
+        coffee: "Our coffee selection is rather special, if I do say so myself. Freshly brewed with our signature Arabica blend:",
+        food: "Hungry? Splendid. Our kitchen prepares everything fresh. Have a look:",
+        specific: "Ah, one of my personal favorites! Here are the details:"
+    },
+    
+    booking: {
+        start: "I'd be delighted to arrange a table for you. Please fill in the details below:",
+        success: "Wonderful! Your reservation is ready to be confirmed.",
+        error: "My apologies, could you kindly check those details again?"
+    },
+    
+    casual: {
+        thanks: "Not at all! It's my pleasure entirely.",
+        goodbye: "Do take care, and we look forward to welcoming you soon!",
+        confused: "I beg your pardon? Perhaps I could show you our menu or help with a booking?"
+    }
+};
+
+// State management
+let conversationState = {
+    awaitingBooking: false,
+    bookingData: {}
+};
+
+function resetBookingState() {
+    conversationState.awaitingBooking = false;
+    conversationState.bookingData = {};
+}
+
+function getCurrentTime() {
+    return new Date().toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+    });
+}
+
+function addMessage(text, isUser = false, extraHTML = '') {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isUser ? 'message-user' : 'message-bot'}`;
+    
+    let content = `<div class="message-content">${text}</div>
+                   <div class="message-time">${getCurrentTime()}</div>`;
+    
+    if (extraHTML) {
+        content += extraHTML;
+    }
+    
+    messageDiv.innerHTML = content;
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function showTyping() {
+    const messagesContainer = document.getElementById('chatMessages');
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message message-bot typing-indicator-container';
+    typingDiv.id = 'typingIndicator';
+    typingDiv.innerHTML = `
+        <div class="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+    `;
+    messagesContainer.appendChild(typingDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function hideTyping() {
+    const typing = document.getElementById('typingIndicator');
+    if (typing) typing.remove();
+}
+
+function createQuickReplies(options) {
+    return `<div class="quick-replies">
+        ${options.map(opt => `<button class="quick-reply" onclick="handleQuickReply('${opt}')">${opt}</button>`).join('')}
+    </div>`;
+}
+
+function formatMenuCategory(categoryKey) {
+    const category = menuData[categoryKey];
+    if (!category) return '';
+    
+    let html = `<div class="menu-category">
+        <div class="menu-category-title">${category.title}</div>`;
+    
+    category.items.forEach(item => {
+        html += `<div class="menu-item">
+            <span class="menu-item-name">${item.name}</span>
+            <span class="menu-item-price">${item.price}</span>
+        </div>`;
+    });
+    
+    html += '</div>';
+    return html;
+}
+
+// ==========================================
+// BOOKING FORM GENERATION
+// ==========================================
+
+function createBookingForm() {
+    const days = getNext7Days();
+    const times = getTimeSlots();
+    const guests = getGuestOptions();
+    
+    let daysOptions = days.map(d => `<option value="${d.value}">${d.label}</option>`).join('');
+    let timesOptions = times.map(t => `<option value="${t.value}">${t.label}</option>`).join('');
+    let guestsOptions = guests.map(g => `<option value="${g.value}">${g.label}</option>`).join('');
+    
+    return `
+        <div class="booking-form" id="bookingForm">
+            <div class="form-group">
+                <label class="form-label">Your Name</label>
+                <input type="text" class="form-input" id="bookingName" placeholder="Enter your full name">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Number of Guests</label>
+                <select class="form-select" id="bookingGuests">
+                    <option value="">Select guests</option>
+                    ${guestsOptions}
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <select class="form-select" id="bookingDate">
+                        <option value="">Select date</option>
+                        ${daysOptions}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Time</label>
+                    <select class="form-select" id="bookingTime">
+                        <option value="">Select time</option>
+                        ${timesOptions}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Contact Number</label>
+                <input type="tel" class="form-input" id="bookingPhone" placeholder="Enter your phone number">
+            </div>
+            
+            <button class="submit-booking-btn" onclick="submitBookingForm()">Confirm Booking</button>
+        </div>
+    `;
+}
+
+function handleQuickReply(text) {
+    const quickReplyMap = {
+        'Pasta': 'pasta',
+        'pasta': 'pasta',
+        'Desserts': 'desserts',
+        'desserts': 'desserts',
+        'Dessert': 'dessert',
+        'dessert': 'dessert',
+        'Coffee & Drinks': 'coffee & drinks',
+        'coffee & drinks': 'coffee & drinks',
+        'Beverages': 'beverages',
+        'beverages': 'beverages',
+        'Breakfast & Eggs': 'breakfast & eggs',
+        'breakfast & eggs': 'breakfast & eggs',
+        'Sandwiches & Burgers': 'sandwiches & burgers',
+        'sandwiches & burgers': 'sandwiches & burgers',
+        'Food': 'food',
+        'food': 'food',
+        'Show salads': 'show salads',
+        'show salads': 'show salads',
+        'Show me the menu': 'show me the menu',
+        'show me the menu': 'show me the menu',
+        'Book a table': 'book a table',
+        'book a table': 'book a table',
+        'I want to book a table': 'i want to book a table',
+        'i want to book a table': 'i want to book a table',
+        'What do you recommend?': 'what do you recommend?',
+        'what do you recommend?': 'what do you recommend?',
+        'Show me food': 'show me food',
+        'show me food': 'show me food',
+        'Show sandwiches': 'show sandwiches',
+        'show sandwiches': 'show sandwiches',
+        'Show burgers': 'show burgers',
+        'show burgers': 'show burgers',
+        'Show wraps': 'show wraps',
+        'show wraps': 'show wraps',
+        'Show pasta': 'show pasta',
+        'show pasta': 'show pasta',
+        'Show coffee': 'show coffee',
+        'show coffee': 'show coffee',
+        'Make another booking': 'make another booking',
+        'make another booking': 'make another booking',
+        'Goodbye': 'goodbye',
+        'goodbye': 'goodbye'
+    };
+    
+    const mappedText = quickReplyMap[text] || text.toLowerCase();
+    document.getElementById('userInput').value = mappedText;
+    sendMessage();
+}
+
+function openWhatsApp() {
+    if (currentWhatsAppUrl) {
+        console.log('Opening WhatsApp:', currentWhatsAppUrl);
+        window.open(currentWhatsAppUrl, '_blank');
+    }
+}
+
+function submitBookingForm() {
+    const name = document.getElementById('bookingName').value.trim();
+    const guests = document.getElementById('bookingGuests').value;
+    const date = document.getElementById('bookingDate').value;
+    const time = document.getElementById('bookingTime').value;
+    const phone = document.getElementById('bookingPhone').value.trim();
+    
+    // Validation
+    if (!name || !guests || !date || !time || !phone) {
+        addMessage("My apologies, but it seems you've missed a field. Please fill in all the details to proceed.", false, '');
+        return;
+    }
+    
+    // Validate time is in future if today
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate.getTime() === today.getTime()) {
+        const now = new Date();
+        const [timeStr, period] = time.split(' ');
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        let24Hours = hours;
+        
+        if (period === 'PM' && hours !== 12) let24Hours += 12;
+        if (period === 'AM' && hours === 12) let24Hours = 0;
+        
+        const selectedTime = new Date();
+        selectedTime.setHours(let24Hours, minutes, 0, 0);
+        
+        if (selectedTime <= now) {
+            addMessage("My apologies, but that time has already passed. Please select a future time.", false, '');
+            return;
+        }
+    }
+    
+    // Store booking data
+    const bookingSummary = {
+        name: name,
+        guests: guests,
+        date: date,
+        time: time,
+        phone: phone
+    };
+    
+    // Generate WhatsApp message
+    const customerMessage = `Hi Matteo Coffee, I would like to book a table.%0A%0A` +
+        `*Name:* ${bookingSummary.name}%0A` +
+        `*Guests:* ${bookingSummary.guests}%0A` +
+        `*Date:* ${bookingSummary.date}%0A` +
+        `*Time:* ${bookingSummary.time}%0A` +
+        `*My Phone:* ${bookingSummary.phone}`;
+    
+    const ownerWhatsAppNumber = '918861005767';
+    currentWhatsAppUrl = `https://wa.me/${ownerWhatsAppNumber}?text=${customerMessage}`;
+    
+    resetBookingState();
+    
+    addMessage("Splendid! Please click the button below to send your booking request to us via WhatsApp:", false, 
+        `<div style="margin-top: 16px; text-align: center;">
+            <button onclick="openWhatsApp()" class="whatsapp-btn">
+                📱 Send Booking to Matteo Coffee
+            </button>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 8px;">This opens WhatsApp with your booking details ready to send</p>
+        </div>
+        <div style="margin-top: 16px; padding: 12px; background: #f5f0e8; border-radius: 8px; font-size: 0.9rem;">
+            <strong>📋 Your Booking:</strong><br>
+            Name: ${bookingSummary.name}<br>
+            Guests: ${bookingSummary.guests}<br>
+            Date: ${bookingSummary.date}<br>
+            Time: ${bookingSummary.time}<br>
+            Phone: ${bookingSummary.phone}
+        </div>` + createQuickReplies(['Show me the menu', 'Make another booking'])
+    );
+}
+
+function processUserInput(input) {
+    const lower = input.toLowerCase().trim();
+    
+    // Handle booking requests
+    if (lower === 'book a table' || lower === 'i want to book a table' || lower === 'book' || lower === 'reservation' || lower === 'table' || lower === 'reserve' || lower === 'make another booking') {
+        conversationState.awaitingBooking = true;
+        return {
+            text: botPersonality.booking.start,
+            html: createBookingForm()
+        };
+    }
+    
+    // Pasta
+    if (lower === 'pasta' || lower === 'show pasta') {
+        return {
+            text: "Our pasta is cooked al dente with the finest sauces:",
+            html: formatMenuCategory('pasta') + createQuickReplies(['Show sandwiches', 'Show burgers', 'Book a table'])
+        };
+    }
+    
+    // Desserts
+    if (lower === 'desserts' || lower === 'dessert' || lower === 'show desserts') {
+        return {
+            text: "A sweet ending to your meal:",
+            html: formatMenuCategory('pastries') + formatMenuCategory('bakery') + createQuickReplies(['Show coffee', 'Book a table'])
+        };
+    }
+    
+    // Salads
+    if (lower === 'salad' || lower === 'salads' || lower === 'show salads' || lower === 'show salad') {
+        return {
+            text: "Fresh and healthy options:",
+            html: formatMenuCategory('salad') + createQuickReplies(['Show main course', 'Book a table'])
+        };
+    }
+    
+    // Coffee & Drinks / Beverages
+    if (lower === 'coffee & drinks' || lower === 'beverages' || lower === 'show coffee' || lower === 'show drinks') {
+        return {
+            text: "Here's our complete beverage menu:",
+            html: formatMenuCategory('coffee') + formatMenuCategory('shekerato') + formatMenuCategory('beverages') + createQuickReplies(['Show food', 'Book a table'])
+        };
+    }
+    
+    // Breakfast & Eggs
+    if (lower === 'breakfast & eggs' || lower === 'breakfast' || lower === 'eggs' || lower === 'show breakfast') {
+        return {
+            text: "The most important meal of the day:",
+            html: formatMenuCategory('eggs') + formatMenuCategory('bakery') + createQuickReplies(['Show coffee', 'Book a table'])
+        };
+    }
+    
+    // Sandwiches & Burgers / Food
+    if (lower === 'sandwiches & burgers' || lower === 'food' || lower === 'show food' || lower === 'show sandwiches' || lower === 'show burgers') {
+        return {
+            text: "Something savory, perhaps?",
+            html: formatMenuCategory('sandwiches') + formatMenuCategory('hotSandwiches') + formatMenuCategory('burgers') + formatMenuCategory('wraps') + createQuickReplies(['Show pasta', 'Show salads', 'Book a table'])
+        };
+    }
+    
+    // Show me the menu
+    if (lower === 'show me the menu' || lower === 'menu' || lower === 'show menu') {
+        return {
+            text: botPersonality.menuResponses.general + " We have an extensive selection. What catches your fancy?",
+            html: createQuickReplies(['Coffee & Drinks', 'Breakfast & Eggs', 'Sandwiches & Burgers', 'Pasta', 'Desserts', 'Book a table'])
+        };
+    }
+    
+    // Show me food
+    if (lower === 'show me food' || lower === 'show food') {
+        return {
+            text: "Something savory, perhaps?",
+            html: formatMenuCategory('sandwiches') + formatMenuCategory('hotSandwiches') + formatMenuCategory('burgers') + formatMenuCategory('wraps') + createQuickReplies(['Show pasta', 'Show salads', 'Book a table'])
+        };
+    }
+    
+    // Show sandwiches
+    if (lower === 'show sandwiches' || lower === 'sandwiches') {
+        return {
+            text: "Freshly prepared sandwiches, served with a smile:",
+            html: formatMenuCategory('sandwiches') + formatMenuCategory('hotSandwiches') + createQuickReplies(['Show burgers', 'Show wraps', 'Book a table'])
+        };
+    }
+    
+    // Show burgers
+    if (lower === 'show burgers' || lower === 'burgers') {
+        return {
+            text: "Juicy burgers, grilled to perfection:",
+            html: formatMenuCategory('burgers') + createQuickReplies(['Show sandwiches', 'Show pasta', 'Book a table'])
+        };
+    }
+    
+    // Show wraps
+    if (lower === 'show wraps' || lower === 'wraps') {
+        return {
+            text: "Delicious wraps, freshly made:",
+            html: formatMenuCategory('wraps') + createQuickReplies(['Show sandwiches', 'Show burgers', 'Book a table'])
+        };
+    }
+    
+    // Show main course
+    if (lower === 'show main course' || lower === 'main course') {
+        return {
+            text: "Our main course selections:",
+            html: formatMenuCategory('pasta') + formatMenuCategory('burgers') + createQuickReplies(['Show salads', 'Book a table'])
+        };
+    }
+    
+    // General menu requests
+    if (lower.includes('menu') || lower.includes('food') || lower.includes('eat') || lower.includes('drink')) {
+        if (lower.includes('coffee') || lower.includes('espresso') || lower.includes('latte') || lower.includes('cappuccino') || lower.includes('mocha')) {
+            return {
+                text: botPersonality.menuResponses.coffee,
+                html: formatMenuCategory('coffee') + formatMenuCategory('shekerato') + createQuickReplies(['Show me food', 'Book a table', 'Beverages'])
+            };
+        }
+        if (lower.includes('pasta') || lower.includes('spaghetti') || lower.includes('penne')) {
+            return {
+                text: "Our pasta is cooked al dente with the finest sauces:",
+                html: formatMenuCategory('pasta') + createQuickReplies(['Show sandwiches', 'Show burgers', 'Book a table'])
+            };
+        }
+        if (lower.includes('sandwich') || lower.includes('club')) {
+            return {
+                text: "Freshly prepared sandwiches, served with a smile:",
+                html: formatMenuCategory('sandwiches') + formatMenuCategory('hotSandwiches') + createQuickReplies(['Show burgers', 'Show wraps', 'Book a table'])
+            };
+        }
+        if (lower.includes('burger')) {
+            return {
+                text: "Juicy burgers, grilled to perfection:",
+                html: formatMenuCategory('burgers') + createQuickReplies(['Show sandwiches', 'Show pasta', 'Book a table'])
+            };
+        }
+        if (lower.includes('wrap')) {
+            return {
+                text: "Delicious wraps, freshly made:",
+                html: formatMenuCategory('wraps') + createQuickReplies(['Show sandwiches', 'Show burgers', 'Book a table'])
+            };
+        }
+        if (lower.includes('egg') || lower.includes('omelet') || lower.includes('breakfast')) {
+            return {
+                text: "Breakfast is served all day. Our egg selection:",
+                html: formatMenuCategory('eggs') + createQuickReplies(['Show coffee', 'Show sandwiches', 'Book a table'])
+            };
+        }
+        if (lower.includes('sweet') || lower.includes('dessert') || lower.includes('cake') || lower.includes('pastry') || lower.includes('bakery')) {
+            return {
+                text: "A sweet ending to your meal:",
+                html: formatMenuCategory('pastries') + formatMenuCategory('bakery') + createQuickReplies(['Show coffee', 'Book a table'])
+            };
+        }
+        if (lower.includes('salad')) {
+            return {
+                text: "Fresh and healthy options:",
+                html: formatMenuCategory('salad') + createQuickReplies(['Show main course', 'Book a table'])
+            };
+        }
+        
+        return {
+            text: botPersonality.menuResponses.general + " We have an extensive selection. What catches your fancy?",
+            html: createQuickReplies(['Coffee & Drinks', 'Breakfast & Eggs', 'Sandwiches & Burgers', 'Pasta', 'Desserts', 'Book a table'])
+        };
+    }
+    
+    // Greetings
+    if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey') || lower.includes('good morning') || lower.includes('good afternoon') || lower.includes('good evening')) {
+        return {
+            text: botPersonality.greetings[Math.floor(Math.random() * botPersonality.greetings.length)],
+            html: createQuickReplies(['Show me the menu', 'I want to book a table', 'What do you recommend?'])
+        };
+    }
+    
+    // Thanks
+    if (lower.includes('thank')) {
+        return {
+            text: botPersonality.casual.thanks,
+            html: createQuickReplies(['Show me the menu', 'Book a table', 'Goodbye'])
+        };
+    }
+    
+    // Goodbye
+    if (lower === 'goodbye' || lower === 'bye' || lower === 'see you') {
+        return {
+            text: botPersonality.casual.goodbye,
+            html: ''
+        };
+    }
+    
+    // Recommendations
+    if (lower === 'what do you recommend?' || lower.includes('recommend') || lower.includes('suggest') || lower.includes('best') || lower.includes('popular')) {
+        return {
+            text: "If I may suggest... Our White Mocha Shekerato is absolutely divine, and the Chicken Tikka Wrap is a crowd favorite. For something hearty, the Penne Pasta in Cream Sauce is simply splendid.",
+            html: createQuickReplies(['Show me coffee', 'Show me food', 'Book a table'])
+        };
+    }
+    
+    // Default response
+    return {
+        text: botPersonality.casual.confused,
+        html: createQuickReplies(['Show me the menu', 'Book a table', 'What do you recommend?'])
+    };
+}
+
+function sendMessage() {
+    const input = document.getElementById('userInput');
+    const text = input.value.trim();
+    
+    if (!text) return;
+    
+    addMessage(text, true);
+    input.value = '';
+    
+    showTyping();
+    
+    setTimeout(() => {
+        hideTyping();
+        const response = processUserInput(text);
+        addMessage(response.text, false, response.html);
+    }, 1000 + Math.random() * 500);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const greeting = botPersonality.greetings[0];
+        addMessage(greeting, false, createQuickReplies(['Show me the menu', 'I want to book a table', 'What do you recommend?']));
+    }, 500);
+    
+    document.getElementById('userInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+});
+</script>
+
+</body>
+</html>
